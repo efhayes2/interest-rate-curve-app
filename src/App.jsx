@@ -1,9 +1,9 @@
-
 import React, { useEffect, useState } from "react";
 import { Range } from "react-range";
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Scatter
 } from "recharts";
+import { interpolateAt } from "./utils";
 import { buildPoints, generateBorrowAndLend } from "./curveUtils";
 
 const curveColors = {
@@ -11,7 +11,6 @@ const curveColors = {
     lend: ["#ff7f0e", "#d62728"],
 };
 const lineWidths = { borrow: 2, lend: 2 };
-
 const MIN = 0;
 const MAX = 100;
 
@@ -21,6 +20,7 @@ export default function InterestRateCurveApp() {
     const [curve2, setCurve2] = useState(null);
     const [range, setRange] = useState([40, 100]);
     const [renderedCurves, setRenderedCurves] = useState([]);
+    const [markers, setMarkers] = useState([]);
 
     useEffect(() => {
         fetch("/data/curves.json")
@@ -36,24 +36,35 @@ export default function InterestRateCurveApp() {
         if (curve1 && curve2) {
             const allX = [...curve1.x, ...curve2.x];
             const minX = Math.min(...allX);
-            const lower = Math.round((minX * 0.7 + Number.EPSILON) * 100) / 100;
+            const lower = Math.round((minX * 0.65 + Number.EPSILON) * 100) / 100;
             setRange([lower, minX]);
         }
     }, [curve1, curve2]);
 
     const handleDraw = () => {
         const rendered = [];
+        const newMarkers = [];
+
         [curve1, curve2].forEach((cfg, i) => {
             const colorBorrow = curveColors.borrow[i];
             const colorLend = curveColors.lend[i];
             const points = buildPoints(cfg);
             const [borrow, lend] = generateBorrowAndLend(points, range);
+
             rendered.push(
                 { label: `${cfg.name} (Borrow)`, data: borrow, color: colorBorrow, strokeWidth: lineWidths.borrow },
                 { label: `${cfg.name} (Lend)`, data: lend, color: colorLend, strokeWidth: lineWidths.lend }
             );
+
+            if (cfg.current_utilization !== undefined) {
+                const x = cfg.current_utilization;
+                const y = interpolateAt(borrow, x);
+                newMarkers.push({ x, y });
+            }
         });
+
         setRenderedCurves(rendered);
+        setMarkers(newMarkers);
     };
 
     if (!curve1 || !curve2) return <div className="p-4">Loading...</div>;
@@ -72,12 +83,14 @@ export default function InterestRateCurveApp() {
             return before?.y || 0;
         });
 
+    const lendYMin = Math.max(0, Math.min(...lendAtLowerX) - 1);
+
     return (
         <div className="max-w-7xl mx-auto p-4">
             <h1 className="text-2xl font-bold mb-6">Interest Rate Curve Visualizer</h1>
 
             <div className="grid grid-cols-6 gap-4 text-sm font-medium mb-2">
-                <div>Curve</div><div>Name</div><div>X-nodes</div><div>Y-nodes</div><div>Max Rate</div><div>Type</div>
+                <div>Curve</div><div>Name</div><div>X-nodes</div><div>Y-nodes</div><div>Max Rate</div><div>Utilization</div>
             </div>
 
             {[curve1, curve2].map((curve, idx) => (
@@ -103,7 +116,7 @@ export default function InterestRateCurveApp() {
                         const newCurve = { ...curve, max_rate: parseFloat(e.target.value) };
                         idx === 0 ? setCurve1(newCurve) : setCurve2(newCurve);
                     }} />
-                    <div>Borrow</div>
+                    {curve.current_utilization ?? "—"}%
                 </div>
             ))}
 
@@ -145,12 +158,32 @@ export default function InterestRateCurveApp() {
                         <LineChart>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="x" type="number" domain={[range[0], range[1]]} tickFormatter={(x) => `${x.toFixed(1)}%`} />
-                            <YAxis tickFormatter={(y) => `${y.toFixed(1)}%`} />
+                            <YAxis tickFormatter={(y) => `${y.toFixed(1)}%`} domain={[lendYMin, 'auto']} />
                             <Tooltip formatter={(value) => `${value.toFixed(2)}%`} labelFormatter={(label) => `Utilization: ${label.toFixed(2)}%`} />
                             {renderedCurves.map((curve, index) => (
                                 <Line key={index} type="monotone" data={curve.data} dataKey="y" name={curve.label}
                                       stroke={curve.color} dot={false} strokeWidth={curve.strokeWidth} />
                             ))}
+                            {markers.length > 0 && (
+                                <Scatter data={markers} shape={({ cx, cy }) => (
+                                    <text x={cx} y={cy} fill="black" fontSize="16" textAnchor="middle" alignmentBaseline="middle">×</text>
+                                )} />
+                            )}
+
+                            {renderedCurves.filter(c => c.label.includes("Borrow")).map((c, i) => {
+                                const curve = i === 0 ? curve1 : curve2;
+                                const points = buildPoints(curve);
+                                const utilization = curve.current_utilization;
+                                const y = interpolateAt(points, utilization);
+                                return (
+                                    <Scatter
+                                        key={`marker-${i}`}
+                                        data={[{ x: utilization, y }]}
+                                        fill="black"
+                                        shape="cross"
+                                    />
+                                );
+                            })}
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
