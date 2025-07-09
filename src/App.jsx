@@ -58,6 +58,20 @@ export default function InterestRateCurveApp() {
 
     if (!curve1 || !curve2) return <div className="p-4">Loading...</div>;
 
+    const lendAtLowerX = renderedCurves
+        .filter(c => c.label.includes("Lend") && c.data.length > 0)
+        .map(c => {
+            const before = c.data.filter(p => p.x <= range[0]).at(-1);
+            const after = c.data.find(p => p.x >= range[0]);
+            if (before && after && before.x !== after.x) {
+                const x0 = before.x, y0 = before.y;
+                const x1 = after.x, y1 = after.y;
+                const slope = (y1 - y0) / (x1 - x0);
+                return y0 + slope * (range[0] - x0);
+            }
+            return before?.y || 0;
+        });
+
     return (
         <div className="max-w-7xl mx-auto p-4">
             <h1 className="text-2xl font-bold mb-6">Interest Rate Curve Visualizer</h1>
@@ -127,10 +141,10 @@ export default function InterestRateCurveApp() {
 
             <div className="flex">
                 <div className="flex-grow">
-                    <ResponsiveContainer width="100%" height={400}>
+                    <ResponsiveContainer width="100%" height={600}>
                         <LineChart>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="x" type="number" domain={[range[0], range[1]]} tickFormatter={(x) => `${x.toFixed(2)}%`} />
+                            <XAxis dataKey="x" type="number" domain={[range[0], range[1]]} tickFormatter={(x) => `${x.toFixed(1)}%`} />
                             <YAxis tickFormatter={(y) => `${y.toFixed(1)}%`} />
                             <Tooltip formatter={(value) => `${value.toFixed(2)}%`} labelFormatter={(label) => `Utilization: ${label.toFixed(2)}%`} />
                             {renderedCurves.map((curve, index) => (
