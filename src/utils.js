@@ -1,25 +1,28 @@
-import { interpolate } from "./utils";
-
-/**
- * Adds (0,0) and (100, max_rate) and converts x/y strings to float points
- */
-export function buildPoints(curve) {
-    const points = [{ x: 0, y: 0 }];
-    for (let i = 0; i < Math.min(curve.x.length, curve.y.length); i++) {
-        points.push({ x: parseFloat(curve.x[i]), y: parseFloat(curve.y[i]) });
+export function interpolateAt(points, x) {
+  const sorted = points.sort((a, b) => a.x - b.x);
+  for (let i = 1; i < sorted.length; i++) {
+    if (x >= sorted[i - 1].x && x <= sorted[i].x) {
+      const { x: x0, y: y0 } = sorted[i - 1];
+      const { x: x1, y: y1 } = sorted[i];
+      return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
     }
-    points.push({ x: 100, y: curve.max_rate });
-    return points;
+  }
+  return 0;
 }
 
-/**
- * Returns interpolated Borrow and derived Lend curve from points
- */
-export function generateBorrowAndLend(points, range) {
-    const borrow = interpolate(points, range[0], range[1]);
-    const lend = borrow.map(p => ({
-        x: p.x,
-        y: (p.y * p.x) / 100
-    }));
-    return [borrow, lend];
+export function interpolate(points, lower, upper, resolution = 1000) {
+  const extended = [...points];
+  if (!extended.some(p => p.x === lower)) {
+    extended.push({ x: lower, y: interpolateAt(extended, lower) });
+  }
+  if (!extended.some(p => p.x === upper)) {
+    extended.push({ x: upper, y: interpolateAt(extended, upper) });
+  }
+  const sorted = extended.sort((a, b) => a.x - b.x);
+  const result = [];
+  const step = (upper - lower) / resolution;
+  for (let x = lower; x <= upper; x += step) {
+    result.push({ x, y: interpolateAt(sorted, x) });
+  }
+  return result;
 }
