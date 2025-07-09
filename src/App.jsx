@@ -5,6 +5,11 @@ import {
 } from "recharts";
 import { buildPoints, generateBorrowAndLend } from "./curveUtils";
 
+// === Configurable Appearance ===
+const curveColors = ["#0000FF", "#008000"]; // Blue, Green
+const lineWidths = { borrow: 2.5, lend: 1.5 };
+const legendThickness = 0.75; // Relative thickness for legend font weight
+
 const MIN = 0;
 const MAX = 100;
 
@@ -26,16 +31,10 @@ export default function InterestRateCurveApp() {
     }, []);
 
     const handleDraw = () => {
-        const styleConfig = [
-            { color: "#000000", strokeWidths: { borrow: 3, lend: 2 } }, // Curve 1
-            { color: "#FF0000", strokeWidths: { borrow: 3, lend: 2 } }  // Curve 2
-        ];
-
         const rendered = [];
 
         [curve1, curve2].forEach((cfg, i) => {
-            const color = styleConfig[i].color;
-            const sw = styleConfig[i].strokeWidths;
+            const color = curveColors[i];
             const points = buildPoints(cfg);
             const [borrow, lend] = generateBorrowAndLend(points, range);
 
@@ -44,13 +43,13 @@ export default function InterestRateCurveApp() {
                     label: `${cfg.name} (Borrow)`,
                     data: borrow,
                     color,
-                    strokeWidth: sw.borrow
+                    strokeWidth: lineWidths.borrow
                 },
                 {
                     label: `${cfg.name} (Lend)`,
                     data: lend,
                     color,
-                    strokeWidth: sw.lend
+                    strokeWidth: lineWidths.lend
                 }
             );
         });
@@ -191,7 +190,7 @@ export default function InterestRateCurveApp() {
                         verticalAlign="top"
                         align="right"
                         wrapperStyle={{
-                            fontWeight: 'bold',
+                            fontWeight: `${legendThickness * 800}`, // reduced font weight
                             fontSize: '1rem',
                             display: 'grid',
                             gridTemplateColumns: '1fr 1fr',
