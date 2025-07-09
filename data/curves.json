@@ -1,0 +1,56 @@
+[
+  {
+    "name": "MarginFi",
+    "type": "Borrow",
+    "token": "SOL",
+    "x": [
+      90
+    ],
+    "y": [
+      7.5
+    ],
+    "max_rate": 300
+  },
+  {
+    "name": "Kamino",
+    "type": "Borrow",
+    "token": "SOL",
+    "x": [
+      91,
+      93,
+      95
+    ],
+    "y": [
+      7.87,
+      13.46,
+      28.73
+    ],
+    "max_rate": 175
+  },
+  {
+    "name": "Drift",
+    "type": "Borrow",
+    "token": "SOL",
+    "x": [
+      80,
+      95
+    ],
+    "y": [
+      6.5,
+      21
+    ],
+    "max_rate": 65
+  },
+  {
+    "name": "Generic Sample",
+    "type": "Borrow",
+    "token": "SOL",
+    "x": [
+      90
+    ],
+    "y": [
+      7.5
+    ],
+    "max_rate": 300
+  }
+]
