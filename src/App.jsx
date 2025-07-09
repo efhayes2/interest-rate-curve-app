@@ -21,7 +21,7 @@ export default function InterestRateCurveApp() {
     const [renderedCurves, setRenderedCurves] = useState([]);
 
     useEffect(() => {
-        fetch("/data/curves.json")
+        fetch("/public/data/curves.json")
             .then(res => res.json())
             .then(data => {
                 setCurvesList(data);
