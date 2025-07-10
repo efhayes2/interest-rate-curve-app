@@ -6,7 +6,8 @@
     "x": [90],
     "y": [7.5],
     "max_rate": 300,
-    "current_utilization": 67
+    "current_utilization": 67,
+    "protocol_fee": 4
   },
   {
     "name": "Kamino",
@@ -15,7 +16,8 @@
     "x": [91, 93, 95],
     "y": [7.87, 13.46, 28.73],
     "max_rate": 175,
-    "current_utilization": 88
+    "current_utilization": 88,
+    "protocol_fee": 4
   },
   {
     "name": "Drift",
@@ -24,7 +26,8 @@
     "x": [80, 85, 90, 95],
     "y": [6.5, 8.54, 13.21, 21],
     "max_rate": 65,
-    "current_utilization": 80
+    "current_utilization": 80,
+    "protocol_fee": 4
   },
   {
     "name": "Save",
@@ -33,15 +36,7 @@
     "x": [48, 80, 90, 95],
     "y": [5.25, 6.27, 18.81, 376.17],
     "max_rate": 65,
-    "current_utilization": 48
-  },
-  {
-    "name": "Generic Sample",
-    "type": "Borrow",
-    "token": "SOL",
-    "x": [90],
-    "y": [7.5],
-    "max_rate": 300,
-    "current_utilization": 50
+    "current_utilization": 48,
+    "protocol_fee": 4
   }
 ]
