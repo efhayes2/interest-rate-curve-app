@@ -27,9 +27,10 @@ export default function InterestRateCurveApp() {
         fetch("/data/curves.json")
             .then(res => res.json())
             .then(data => {
-                setCurvesList(data);
-                setCurve1(data[0]);
-                setCurve2(data[1]);
+                const withLabels = data.map(c => ({ ...c, label: `${c.name} ${c.token}` }));
+                setCurvesList(withLabels);
+                setCurve1(withLabels[0]);
+                setCurve2(withLabels[1]);
             });
     }, []);
 
@@ -99,15 +100,19 @@ export default function InterestRateCurveApp() {
                 const borrowRate = baseRate * (1 + curve.protocol_fee / 100);
                 return (
                     <div className="grid grid-cols-8 gap-4 items-center text-sm mb-2" key={idx}>
-                        <select className="border p-2 rounded" value={curve.name}
+
+                        <select className="border p-2 rounded" value={`${curve.name} ${curve.token}`}
                                 onChange={(e) => {
-                                    const selected = curvesList.find(c => c.name === e.target.value);
-                                    idx === 0 ? setCurve1({ ...selected }) : setCurve2({ ...selected });
+                                    const selected = curvesList.find(c => c.label === e.target.value);
+                                    if (selected) {
+                                        idx === 0 ? setCurve1({ ...selected }) : setCurve2({ ...selected });
+                                    }
                                 }}>
                             {curvesList.map((c, i) => (
-                                <option key={i} value={c.name}>{c.name}</option>
+                                <option key={i} value={c.label}>{c.label}</option>
                             ))}
                         </select>
+
                         <input className="border p-2 rounded" value={curve.x.join(",")} onChange={(e) => {
                             const newCurve = { ...curve, x: e.target.value.split(",").map(Number) };
                             idx === 0 ? setCurve1(newCurve) : setCurve2(newCurve);
